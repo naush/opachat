@@ -1,0 +1,12 @@
+# ToDo:
+ - dynamically create chat rooms
+ - youtube integration
+ - gist integration (pasting code)
+ - display popular chat rooms /lounge (100)/ on top
+ - simple markup language integration
+ - history message displays day/mo/year in addition to min/hour
+ - hyperlink url
+ - customizable theme
+ - drag and drop
+ - upload and display images
+ - upload and display sound clips
