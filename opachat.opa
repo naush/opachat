@@ -1,6 +1,4 @@
 import stdlib.web.template
-import stdlib.components.weather
-import stdlib.upload
 
 type message = {author: string
                ; text: string
