@@ -3,18 +3,21 @@ import stdlib.web.template
 type message = {author: string
                ; text: string
                ; time: Date.date
-               ; welcome: bool}
+               ; welcome: bool
+               ; room: string}
 
 db /history: stringmap(list(message))
 db /history[_]/hd/author = "Anonymous"
 db /history[_]/hd/text = "This chat room is very quiet."
 db /history[_]/hd/time = Date.now()
 db /history[_]/hd/welcome = {false}
+db /history[_]/hd/room = "lounge"
 
 @publish room = Network.cloud("room"): Network.network(message)
 
-save_message(message, room) =
-  /history[room] <- List.add({author=message.author text=message.text time=message.time welcome={false}}, /history[room])
+save_message(message) =
+  room_name = message.room
+  /history[room_name] <- List.add({author=message.author text=message.text time=message.time welcome={false} room=room_name}, /history[room_name])
 
 welcome_message(author: string) =
   match author == Dom.get_value(#user) with
@@ -38,19 +41,23 @@ history_to_html(m: message) =
 stamp(date) = "{Date.get_hour(date)}:{Date.get_min(date)}"
 
 user_update(m: message) =
-  text = if m.welcome then welcome_message(m.author) else m.text
-  line = message_to_html({author=m.author text=text time=m.time welcome=m.welcome})
-  do Dom.transform([#conversation -<- line ])
-  Dom.scroll_to_top(#conversation)
+  if m.room == Dom.get_value(#room)
+  then (
+    text = if m.welcome then welcome_message(m.author) else m.text
+    line = message_to_html({author=m.author text=text time=m.time welcome=m.welcome room=m.room})
+    do Dom.transform([#conversation -<- line ])
+    Dom.scroll_to_top(#conversation)
+  )
+  else {}
 
-setup_conversation(author) =
+setup_conversation(author, room_name) =
   do Network.add_callback(user_update, room)
-  Network.broadcast({~author text = "" time=Date.now() welcome={true}}, room)
+  Network.broadcast({~author text = "" time=Date.now() welcome={true} room=room_name}, room)
 
 broadcast(author, room_name) =
   entry = Dom.get_value(#entry)
-  message = {~author text=entry time=Date.now() welcome={false}}
-  do save_message(message, room_name)
+  message = {~author text=entry time=Date.now() welcome={false} room=room_name}
+  do save_message(message)
   do Network.broadcast(message, room)
   Dom.clear_value(#entry)
 
@@ -61,7 +68,7 @@ body(author, messages, room_name) =
       <input id=#room value={room_name} />
       <input id=#user value={author} />
     </div>
-    <div id=#conversation onready={_ -> setup_conversation(author)}>
+    <div id=#conversation onready={_ -> setup_conversation(author, room_name)}>
       {List.map(history_to_html, messages)}
     </div>
     <div id=#top>
