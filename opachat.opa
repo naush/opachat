@@ -29,22 +29,22 @@ replace_link(token) =
     then "<a href=\"{token}\" target=\"_blank\">{token}</a>"
     else token
 
+transform_text(text) =
+  tokens = List.map(replace_link, String.explode(" ", text))
+  Xhtml.of_string_unsafe(String.of_list(String.to_string, " ", tokens))
+
 message_to_html(m: message) =
-  tokens = List.map(replace_link, String.explode(" ", m.text))
-  text = Xhtml.of_string_unsafe(String.of_list(String.to_string, " ", tokens))
   <div class="line">
      <div class="time">[{stamp(m.time)}]</div>
      <div class="user">{m.author}:</div>
-     <div class="message">{text}</div>
+     <div class="message">{transform_text(m.text)}</div>
   </div>
 
 history_to_html(m: message) =
-  tokens = List.map(replace_link, String.explode(" ", m.text))
-  text = Xhtml.of_string_unsafe(String.of_list(String.to_string, " ", tokens))
   <div class="line">
      <div class="old-time">[{stamp(m.time)}]</div>
      <div class="old-user">{m.author}:</div>
-     <div class="old-message">{m.text}</div>
+     <div class="old-message">{transform_text(m.text)}</div>
   </div>
 
 stamp(date) = "{Date.get_hour(date)}:{Date.get_min(date)}"

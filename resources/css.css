@@ -222,7 +222,6 @@ input#entry {
 }
 
 .line:after {
-    border-bottom: 1px solid #FFF;
     content:"";
     display:block;
     position:relative;
