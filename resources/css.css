@@ -244,8 +244,3 @@ input#entry {
     padding:10px 0;
     text-align:left;
 }
-
-#user, #room {
-  display:none;
-}
-

@@ -11,3 +11,6 @@
  - upload and display sound clips
  - twitter-style display more log
  - dynamically create multiple-depth chat rooms
+ - allows topics /1/2/
+ - collapse author
+ - cycle left and right alignments

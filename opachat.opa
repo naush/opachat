@@ -74,8 +74,8 @@ body(author, messages, room_name) =
   Resource.styled_page("/{room_name}/", ["/resources/css.css"],
     <div id=#header>
       <div id=#logo></div>
-      <input id=#room value={room_name} />
-      <input id=#user value={author} />
+      <input type="hidden" id=#room value={room_name} />
+      <input type="hidden" id=#user value={author} />
     </div>
     <div id=#conversation onready={_ -> setup_conversation(author, room_name)}>
       {List.map(history_to_html, messages)}
