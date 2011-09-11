@@ -24,14 +24,23 @@ welcome_message(author: string) =
    | {true} -> "Welcome, you are user {author}"
    | {false} -> "User {author} has joined the room"
 
+replace_link(token) =
+  if String.get_prefix(4, token) == some("http")
+    then "<a href=\"{token}\" target=\"_blank\">{token}</a>"
+    else token
+
 message_to_html(m: message) =
+  tokens = List.map(replace_link, String.explode(" ", m.text))
+  text = Xhtml.of_string_unsafe(String.of_list(String.to_string, " ", tokens))
   <div class="line">
      <div class="time">[{stamp(m.time)}]</div>
      <div class="user">{m.author}:</div>
-     <div class="message">{m.text}</div>
+     <div class="message">{text}</div>
   </div>
 
 history_to_html(m: message) =
+  tokens = List.map(replace_link, String.explode(" ", m.text))
+  text = Xhtml.of_string_unsafe(String.of_list(String.to_string, " ", tokens))
   <div class="line">
      <div class="old-time">[{stamp(m.time)}]</div>
      <div class="old-user">{m.author}:</div>
