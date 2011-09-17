@@ -6,18 +6,19 @@ type message = {author: string
                ; welcome: bool
                ; room: string}
 
-db /history: stringmap(list(message))
-db /history[_]/hd/author = "Anonymous"
-db /history[_]/hd/text = "This chat room is very quiet."
-db /history[_]/hd/time = Date.now()
-db /history[_]/hd/welcome = {false}
-db /history[_]/hd/room = "lounge"
+db /history: stringmap(intmap(message))
+db /history[_][_]/author = "Anonymous"
+db /history[_][_]/text = "This chat room is very quiet."
+db /history[_][_]/time = Date.now()
+db /history[_][_]/welcome = {false}
+db /history[_][_]/room = "lounge"
 
 @publish room = Network.cloud("room"): Network.network(message)
 
 save_message(message) =
   room_name = message.room
-  /history[room_name] <- List.add({author=message.author text=message.text time=message.time welcome={false} room=room_name}, /history[room_name])
+  fresh_key = Db.fresh_key(!/history[room_name])
+  /history[room_name][fresh_key] <- {author=message.author text=message.text time=message.time welcome={false} room=room_name}
 
 welcome_message(author: string) =
   match author == Dom.get_value(#user) with
@@ -93,7 +94,7 @@ body(author, messages, room_name) =
       <input type="hidden" id=#user value={author} />
     </div>
     <div id=#conversation onready={_ -> setup_conversation(author, room_name)}>
-      {List.map(history_to_html, messages)}
+      {List.map(history_to_html, Map.To.val_list(messages))}
     </div>
     <div id=#top>
       <input id=#entry onnewline={_ -> broadcast(author, room_name)} />
