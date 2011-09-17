@@ -24,10 +24,25 @@ welcome_message(author: string) =
    | {true} -> "Welcome, you are user {author}"
    | {false} -> "User {author} has joined the room"
 
+embed_youtube(token) =
+  value = List.head(String.explode("&", token))
+  "<iframe class=\"youtube-player\" type=\"text/html\" width=\"640\" height=\"385\"
+  src=\"http://www.youtube.com/embed/{value}\" frameborder=\"0\" allowfullscreen>
+  </iframe>"
+
+replace_link_parser =
+  params = parser p = (.*) -> Text.to_string(p)
+  parser
+  | "http://www.youtube.com/watch?v=" ~params -> embed_youtube(params)
+  | "http://youtube.com/watch?v=" ~params -> embed_youtube(params)
+  | "http://www.youtube.com/v/" ~params -> embed_youtube(params)
+  | "http://youtube.com/v/" ~params -> embed_youtube(params)
+  | "http://" ~params -> "<a href=\"http://{params}\" target=\"_blank\">http://{params}</a>"
+
 replace_link(token) =
-  if String.get_prefix(4, token) == some("http")
-    then "<a href=\"{token}\" target=\"_blank\">{token}</a>"
-    else token
+  match Parser.try_parse(replace_link_parser, token) with
+  | ~{some} -> some
+  | {none} -> token
 
 transform_text(text) =
   tokens = List.map(replace_link, String.explode(" ", text))
