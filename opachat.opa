@@ -36,8 +36,7 @@ embed_youtube(token) =
   </iframe>"
 
 embed_gist(token) =
-  value = List.head(String.explode("?", token))
-  "<script src=\"http://gist.github.com/{value}.js\"></script>"
+  "<script src=\"http://gist.github.com/{token}.js\"></script>"
 
 transformer =
   any = parser p = (.*) -> Text.to_string(p)
@@ -62,7 +61,7 @@ transform_text(text) =
   Xhtml.of_string_unsafe(String.of_list(String.to_string, " ", tokens))
 
 message_to_html(m: message) =
-  <div class="line">
+  <div class="post">
      {if m.welcome then <div class="number" /> else <div class="number"><a name="{m.number}">{m.number}</a></div>}
      <div class="time">[{stamp(m.time)}]</div>
      <div class="user">{m.author}:</div>
@@ -70,7 +69,7 @@ message_to_html(m: message) =
   </div>
 
 history_to_html(m: message) =
-  <div class="line">
+  <div class="post">
      <div class="old-number"><a name="{m.number}">{m.number}</a></div>
      <div class="old-time">[{stamp(m.time)}]</div>
      <div class="old-user">{m.author}:</div>
@@ -83,8 +82,8 @@ user_update(m: message) =
   if m.room == Dom.get_value(#room)
   then (
     text = if m.welcome then welcome_message(m.author) else m.text
-    line = message_to_html({author=m.author text=text time=m.time welcome=m.welcome room=m.room number=m.number})
-    do Dom.transform([#conversation -<- line ])
+    post = message_to_html({author=m.author text=text time=m.time welcome=m.welcome room=m.room number=m.number})
+    do Dom.transform([#conversation -<- post ])
     Dom.scroll_to_top(#conversation)
   )
   else {}

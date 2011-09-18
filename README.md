@@ -13,9 +13,9 @@
  - hyperlink url
  - youtube integration
  - post number (#100 should create link to post #100)
+ - gist integration (pasting code)
 
 # ToDo:
- - gist integration (pasting code)
  - display popular rooms /lounge (100)/ on top
  - simple markup language integration
  - clickable post number (append #100 to your input)

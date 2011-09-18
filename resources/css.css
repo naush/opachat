@@ -208,7 +208,7 @@ input#entry {
      margin: 5px 5px 60px 5px;
 }
 
-.line {
+.post {
      background: url("/resources/user.png") no-repeat 5px 5px;
      clear: both;
      display: block;
@@ -220,7 +220,7 @@ input#entry {
      text-align:left;
 }
 
-.line:after {
+.post:after {
     content:"";
     display:block;
     position:relative;
