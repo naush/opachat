@@ -12,12 +12,12 @@
  - dynamically create rooms
  - hyperlink url
  - youtube integration
+ - post number (#100 should create link to post #100)
 
 # ToDo:
  - gist integration (pasting code)
  - display popular rooms /lounge (100)/ on top
  - simple markup language integration
- - post number (#100 should create link to post #100)
  - clickable post number (append #100 to your input)
  - older message displays day/mo/year in addition to min/hour
  - customizable theme
@@ -35,4 +35,4 @@
  - accentuate topic
  - /topic/ generate link to /current/topic/
  - +/-1
- - set filter:
+ - :filter=token,token,token
