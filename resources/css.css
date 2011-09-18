@@ -229,11 +229,11 @@ input#entry {
 
 .number {display:inline-block;color: #ccc;font-variant:small-caps;width:50px;text-align:right;}
 .time {display:inline-block;color: #ccc;font-variant:small-caps;width:50px;}
-.user {display:inline-block;color: #B30A0A;font-variant:small-caps;width:65px;}
+.user {display:inline-block;color: #B30A0A;font-variant:small-caps;width:70px;}
 .message{display:inline-block;color:#252525;vertical-align:text-top;max-width:1000px;}
 .old-number {display:inline-block;color: #ccc;font-variant:small-caps;width:50px;text-align:right;}
 .old-time {display:inline-block;color: #ccc;font-variant:small-caps;width:50px;}
-.old-user {display:inline-block;color: #d98585;font-variant:small-caps;width:65px;}
+.old-user {display:inline-block;color: #d98585;font-variant:small-caps;width:70px;}
 .old-message{display:inline-block;color:#939393;max-width:1000px;vertical-align:text-top;}
 
 #top {
