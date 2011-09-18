@@ -33,6 +33,17 @@
  - public / invite only
  - elaborate greeting message: welcome to /lounge/topic/
  - accentuate topic
- - /topic/ generate link to /current/topic/
+ - /topic/ generate link to /topic/
+ - /category/topic/ generate link to /category/topic/
+ - /room/#100 generates link to /room/ on post #100
  - +/-1
  - :filter=token,token,token
+ - hyperlink should recognize https protocol
+ - :sound=trumpet
+ - :image=snowman
+ - :wiki=keyword (option: random)
+ - :google=keyword (option: random)
+ - :youtube=v
+ - wikipedia integration
+ - google search results integration
+ - user left message

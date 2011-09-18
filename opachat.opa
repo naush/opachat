@@ -35,10 +35,16 @@ embed_youtube(token) =
   src=\"http://www.youtube.com/embed/{value}?wmode=opaque\" frameborder=\"0\" allowfullscreen>
   </iframe>"
 
+embed_gist(token) =
+  value = List.head(String.explode("?", token))
+  "<script src=\"http://gist.github.com/{value}.js\"></script>"
+
 transformer =
   any = parser p = (.*) -> Text.to_string(p)
   numeric = parser n = ([0-9]*) -> Text.to_string(n)
   parser
+  | "https://gist.github.com/" ~any -> embed_gist(any)
+  | "http://gist.github.com/" ~any -> embed_gist(any)
   | "http://www.youtube.com/watch?v=" ~any -> embed_youtube(any)
   | "http://youtube.com/watch?v=" ~any -> embed_youtube(any)
   | "http://www.youtube.com/v/" ~any -> embed_youtube(any)
