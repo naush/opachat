@@ -71,7 +71,7 @@ history_to_html(m: message) =
      <div class="old-message">{transform_text(m.text)}</div>
   </div>
 
-stamp(date) = "{Date.get_hour(date)}:{Date.get_min(date)}"
+stamp(date) = "{Date.to_formatted_string(Date.generate_printer("%H:%M"), date)}"
 
 user_update(m: message) =
   if m.room == Dom.get_value(#room)
