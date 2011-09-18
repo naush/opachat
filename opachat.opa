@@ -31,22 +31,24 @@ embed_youtube(token) =
   src=\"http://www.youtube.com/embed/{value}\" frameborder=\"0\" allowfullscreen>
   </iframe>"
 
-replace_link_parser =
-  params = parser p = (.*) -> Text.to_string(p)
+transformer =
+  any = parser p = (.*) -> Text.to_string(p)
+  numeric = parser n = ([0-9]*) -> Text.to_string(n)
   parser
-  | "http://www.youtube.com/watch?v=" ~params -> embed_youtube(params)
-  | "http://youtube.com/watch?v=" ~params -> embed_youtube(params)
-  | "http://www.youtube.com/v/" ~params -> embed_youtube(params)
-  | "http://youtube.com/v/" ~params -> embed_youtube(params)
-  | "http://" ~params -> "<a href=\"http://{params}\" target=\"_blank\">http://{params}</a>"
+  | "http://www.youtube.com/watch?v=" ~any -> embed_youtube(any)
+  | "http://youtube.com/watch?v=" ~any -> embed_youtube(any)
+  | "http://www.youtube.com/v/" ~any -> embed_youtube(any)
+  | "http://youtube.com/v/" ~any -> embed_youtube(any)
+  | "http://" ~any -> "<a href=\"http://{any}\" target=\"_blank\">http://{any}</a>"
+  | "#" ~numeric -> "<a href=\"#{numeric}\">#{numeric}</a>"
 
-replace_link(token) =
-  match Parser.try_parse(replace_link_parser, token) with
+transform(token) =
+  match Parser.try_parse(transformer, token) with
   | ~{some} -> some
   | {none} -> token
 
 transform_text(text) =
-  tokens = List.map(replace_link, String.explode(" ", text))
+  tokens = List.map(transform, String.explode(" ", text))
   Xhtml.of_string_unsafe(String.of_list(String.to_string, " ", tokens))
 
 message_to_html(m: message) =
