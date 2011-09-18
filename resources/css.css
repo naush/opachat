@@ -228,9 +228,11 @@ input#entry {
     top:25px;
 }
 
+.number {display:inline-block;color: #ccc;font-variant:small-caps;}
 .time {display:inline-block;color: #ccc;font-variant:small-caps;}
 .user {display:inline-block;color: #B30A0A;font-variant:small-caps;}
 .message{display:inline-block;color:#252525;}
+.old-number {display:inline-block;color: #ccc;font-variant:small-caps;}
 .old-time {display:inline-block;color: #ccc;font-variant:small-caps;}
 .old-user {display:inline-block;color: #d98585;font-variant:small-caps;}
 .old-message{display:inline-block;color:#939393;}

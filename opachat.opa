@@ -4,7 +4,8 @@ type message = {author: string
                ; text: string
                ; time: Date.date
                ; welcome: bool
-               ; room: string}
+               ; room: string
+               ; number: int}
 
 db /history: stringmap(intmap(message))
 db /history[_][_]/author = "Anonymous"
@@ -12,13 +13,16 @@ db /history[_][_]/text = "This chat room is very quiet."
 db /history[_][_]/time = Date.now()
 db /history[_][_]/welcome = {false}
 db /history[_][_]/room = "lounge"
+db /history[_][_]/number = 0
 
 @publish room = Network.cloud("room"): Network.network(message)
 
 save_message(message) =
   room_name = message.room
   fresh_key = Db.fresh_key(!/history[room_name])
-  /history[room_name][fresh_key] <- {author=message.author text=message.text time=message.time welcome={false} room=room_name}
+  message = {author=message.author text=message.text time=message.time welcome={false} room=room_name number=fresh_key}
+  do /history[room_name][fresh_key] <- message
+  message 
 
 welcome_message(author: string) =
   match author == Dom.get_value(#user) with
@@ -53,6 +57,7 @@ transform_text(text) =
 
 message_to_html(m: message) =
   <div class="line">
+     {if m.welcome then <div class="number" /> else <div class="number"><a name="{m.number}">{m.number}</a></div>}
      <div class="time">[{stamp(m.time)}]</div>
      <div class="user">{m.author}:</div>
      <div class="message">{transform_text(m.text)}</div>
@@ -60,6 +65,7 @@ message_to_html(m: message) =
 
 history_to_html(m: message) =
   <div class="line">
+     <div class="old-number"><a name="{m.number}">{m.number}</a></div>
      <div class="old-time">[{stamp(m.time)}]</div>
      <div class="old-user">{m.author}:</div>
      <div class="old-message">{transform_text(m.text)}</div>
@@ -71,7 +77,7 @@ user_update(m: message) =
   if m.room == Dom.get_value(#room)
   then (
     text = if m.welcome then welcome_message(m.author) else m.text
-    line = message_to_html({author=m.author text=text time=m.time welcome=m.welcome room=m.room})
+    line = message_to_html({author=m.author text=text time=m.time welcome=m.welcome room=m.room number=m.number})
     do Dom.transform([#conversation -<- line ])
     Dom.scroll_to_top(#conversation)
   )
@@ -79,12 +85,11 @@ user_update(m: message) =
 
 setup_conversation(author, room_name) =
   do Network.add_callback(user_update, room)
-  Network.broadcast({~author text = "" time=Date.now() welcome={true} room=room_name}, room)
+  Network.broadcast({~author text = "" time=Date.now() welcome={true} room=room_name number=999}, room)
 
 broadcast(author, room_name) =
   entry = Dom.get_value(#entry)
-  message = {~author text=entry time=Date.now() welcome={false} room=room_name}
-  do save_message(message)
+  message = save_message({~author text=entry time=Date.now() welcome={false} room=room_name number=999})
   do Network.broadcast(message, room)
   Dom.clear_value(#entry)
 
@@ -96,7 +101,7 @@ body(author, messages, room_name) =
       <input type="hidden" id=#user value={author} />
     </div>
     <div id=#conversation onready={_ -> setup_conversation(author, room_name)}>
-      {List.map(history_to_html, Map.To.val_list(messages))}
+      {List.map(history_to_html, List.rev(messages))}
     </div>
     <div id=#top>
       <input id=#entry onnewline={_ -> broadcast(author, room_name)} />
@@ -106,7 +111,7 @@ body(author, messages, room_name) =
 
 setup_room(name) =
   author = Random.string(8)
-  messages = /history[name]
+  messages = Map.To.val_list(/history[name])
   body(author, messages, name)
 
 start =
