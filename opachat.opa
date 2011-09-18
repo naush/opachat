@@ -32,7 +32,7 @@ welcome_message(author: string) =
 embed_youtube(token) =
   value = List.head(String.explode("&", token))
   "<iframe class=\"youtube-player\" type=\"text/html\" width=\"640\" height=\"385\"
-  src=\"http://www.youtube.com/embed/{value}\" frameborder=\"0\" allowfullscreen>
+  src=\"http://www.youtube.com/embed/{value}?wmode=opaque\" frameborder=\"0\" allowfullscreen>
   </iframe>"
 
 transformer =
