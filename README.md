@@ -14,6 +14,7 @@
  - youtube integration
  - post number (#100 should create link to post #100)
  - gist integration (pasting code)
+ - command: _:rm=#_ (remove post #)
 
 # ToDo:
  - display popular rooms /lounge (100)/ on top
