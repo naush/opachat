@@ -1,9 +1,12 @@
 import stdlib.web.template
 
+type command = {action: string
+               ; arguments: list(string)}
+
 type message = {author: string
                ; text: string
                ; time: Date.date
-               ; welcome: bool
+               ; kind: string
                ; room: string
                ; number: int}
 
@@ -11,7 +14,7 @@ db /history: stringmap(intmap(message))
 db /history[_][_]/author = "Anonymous"
 db /history[_][_]/text = "This chat room is very quiet."
 db /history[_][_]/time = Date.now()
-db /history[_][_]/welcome = {false}
+db /history[_][_]/kind = "chat"
 db /history[_][_]/room = "lounge"
 db /history[_][_]/number = 0
 
@@ -20,7 +23,7 @@ db /history[_][_]/number = 0
 save_message(message) =
   room_name = message.room
   fresh_key = Db.fresh_key(!/history[room_name])
-  message = {author=message.author text=m.text time=message.time welcome={false} room=room_name number=fresh_key}
+  message = {author=message.author text=message.text time=message.time kind=message.kind room=room_name number=fresh_key}
   do /history[room_name][fresh_key] <- message
   message
 
@@ -31,7 +34,7 @@ welcome_message(author: string) =
 
 embed_youtube(token) =
   value = List.head(String.explode("&", token))
-  "<iframe class=\"youtube-player\" type=\"text/html\" width=\"640\" height=\"385\"
+  "<iframe class=\"youtube-player\" kind=\"text/html\" width=\"640\" height=\"385\"
   src=\"http://www.youtube.com/embed/{value}?wmode=opaque\" frameborder=\"0\" allowfullscreen>
   </iframe>"
 
@@ -39,7 +42,12 @@ embed_gist(token) =
   "<script src=\"http://gist.github.com/{token}.js\"></script>"
 
 remove_from_db(topic, number) =
-  do Db.remove(@/history[topic][Int.of_string(number)])
+  path = @/history[topic][Int.of_string(number)]
+  if Db.exists(path)
+    then Db.remove(path)
+    else {}
+
+remove_from_dom(number) =
   dom = Dom.select_id("post-{number}")
   if Dom.is_empty(dom)
     then {} 
@@ -50,6 +58,7 @@ numeric = parser n = ([0-9]+) -> Text.to_string(n)
 alphanumeric = parser a = ([a-zA-Z0-9\-_]+) -> Text.to_string(a)
 protocol = parser p = ("http://"|"https://") -> Text.to_string(p)
 topic = parser t = ([a-zA-Z0-9-_.]+) -> Text.to_string(t)
+
 transformer =
   parser
   | protocol "gist.github.com/" ~numeric -> embed_gist(numeric)
@@ -71,7 +80,7 @@ transform_text(text) =
 
 message_to_html(m: message) =
   <div class="post" id="post-{m.number}">
-     {if m.welcome then <div class="number" /> else <div class="number"><a name="{m.number}">{m.number}</a></div>}
+     {if m.kind == "chat" then <div class="number"><a name="{m.number}">{m.number}</a></div> else <div class="number" />}
      <div class="time">[{stamp(m.time)}]</div>
      <div class="user">{m.author}:</div>
      <div class="message">{transform_text(m.text)}</div>
@@ -89,19 +98,35 @@ stamp(date) = "{Date.to_formatted_string(Date.generate_printer("%H:%M"), date)}"
 
 command_parser =
   parser
-  | ":rm=/" ~topic "/" ~numeric -> remove_from_db(topic, numeric)
+  | ":rm=/" ~topic "/" ~numeric -> {action = "rm" arguments = [topic, numeric]} 
+  | (.*) -> {action = "none" arguments = []}
 
-parse_command(token) =
-  match Parser.try_parse(command_parser, token) with
-  | {none} -> {false}
-  | _ -> {true}
+parse_command(token) = Parser.parse(command_parser, token)
+
+execute_from_server(command) =
+  match command.action with
+  | "rm" -> remove_from_db(List.head(command.arguments), List.head(List.tail(command.arguments)))
+  | "none" -> {}
+  | _ -> {}
+
+execute_from_client(command) =
+  match command.action with
+  | "rm" -> remove_from_dom(List.head(List.tail(command.arguments)))
+  | "none" -> {}
+  | _ -> {}
 
 user_update(m: message) =
   if m.room == Dom.get_value(#room)
   then (
-    text = if m.welcome then welcome_message(m.author) else m.text
-    text = if parse_command(entry) then "<div class=\"command\">Blasphemy!</div>" else m.text
-    post = message_to_html({author=m.author text=text time=m.time welcome=m.welcome room=m.room number=m.number})
+    text = match m.kind with
+    | "welcome" -> welcome_message(m.author)
+    | "chat" -> m.text
+    | "command" -> (
+      do execute_from_client(parse_command(m.text))
+      "<div class=\"command\">Blasphemy!</div>"
+    )
+    | _ -> m.text
+    post = message_to_html({author=m.author text=text time=m.time kind=m.kind room=m.room number=m.number})
     do Dom.transform([#conversation -<- post ])
     Dom.scroll_to_top(#conversation)
   )
@@ -109,11 +134,15 @@ user_update(m: message) =
 
 setup_conversation(author, room_name) =
   do Network.add_callback(user_update, room)
-  Network.broadcast({~author text = "" time=Date.now() welcome={true} room=room_name number=999}, room)
+  Network.broadcast({~author text = "" time=Date.now() kind = "welcome" room=room_name number=999}, room)
 
 broadcast(author, room_name) =
   entry = Dom.get_value(#entry)
-  message = save_message({~author text=entry time=Date.now() welcome={false} room=room_name number=999})
+  command = parse_command(entry)
+  do execute_from_server(command)
+  message = if command.action == "none"
+    then save_message({~author text=entry time=Date.now() kind = "chat" room=room_name number=999})
+    else {~author text=entry time=Date.now() kind = "command" room=room_name number=999}
   do Network.broadcast(message, room)
   Dom.clear_value(#entry)
 
