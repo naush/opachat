@@ -98,20 +98,23 @@ stamp(date) = "{Date.to_formatted_string(Date.generate_printer("%H:%M"), date)}"
 
 command_parser =
   parser
-  | ":rm=/" ~topic "/" ~numeric -> {action = "rm" arguments = [topic, numeric]} 
+  | ":rm=/" ~topic "/" ~numeric -> {action = "rm-remote" arguments = [topic, numeric]} 
+  | ":rm=" ~numeric -> {action = "rm-local" arguments = [numeric]} 
   | (.*) -> {action = "none" arguments = []}
 
 parse_command(token) = Parser.parse(command_parser, token)
 
-execute_from_server(command) =
+execute_from_server(command, room) =
   match command.action with
-  | "rm" -> remove_from_db(List.head(command.arguments), List.head(List.tail(command.arguments)))
+  | "rm-remote" -> remove_from_db(List.head(command.arguments), List.head(List.tail(command.arguments)))
+  | "rm-local" -> remove_from_db(room, List.head(command.arguments))
   | "none" -> {}
   | _ -> {}
 
 execute_from_client(command) =
   match command.action with
-  | "rm" -> remove_from_dom(List.head(List.tail(command.arguments)))
+  | "rm-remote" -> remove_from_dom(List.head(List.tail(command.arguments)))
+  | "rm-local" -> remove_from_dom(List.head(command.arguments))
   | "none" -> {}
   | _ -> {}
 
@@ -139,7 +142,7 @@ setup_conversation(author, room_name) =
 broadcast(author, room_name) =
   entry = Dom.get_value(#entry)
   command = parse_command(entry)
-  do execute_from_server(command)
+  do execute_from_server(command, room_name)
   message = if command.action == "none"
     then save_message({~author text=entry time=Date.now() kind = "chat" room=room_name number=999})
     else {~author text=entry time=Date.now() kind = "command" room=room_name number=999}
