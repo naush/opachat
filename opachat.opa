@@ -87,10 +87,20 @@ history_to_html(m: message) =
 
 stamp(date) = "{Date.to_formatted_string(Date.generate_printer("%H:%M"), date)}"
 
+command_parser =
+  parser
+  | ":rm=/" ~topic "/" ~numeric -> remove_from_db(topic, numeric)
+
+parse_command(token) =
+  match Parser.try_parse(command_parser, token) with
+  | {none} -> {false}
+  | _ -> {true}
+
 user_update(m: message) =
   if m.room == Dom.get_value(#room)
   then (
     text = if m.welcome then welcome_message(m.author) else m.text
+    text = if parse_command(entry) then "<div class=\"command\">Blasphemy!</div>" else m.text
     post = message_to_html({author=m.author text=text time=m.time welcome=m.welcome room=m.room number=m.number})
     do Dom.transform([#conversation -<- post ])
     Dom.scroll_to_top(#conversation)
@@ -101,19 +111,9 @@ setup_conversation(author, room_name) =
   do Network.add_callback(user_update, room)
   Network.broadcast({~author text = "" time=Date.now() welcome={true} room=room_name number=999}, room)
 
-command_parser =
-  parser
-  | ":rm=/" ~topic "/" ~numeric -> remove_from_db(topic, numeric)
-
-parse_command(token) =
-  match Parser.try_parse(command_parser, token) with
-  | {none} -> {false}
-  | _ -> {true}
-
 broadcast(author, room_name) =
   entry = Dom.get_value(#entry)
-  text = if parse_command(entry) then "<div class=\"command\">Blasphemy!</div>" else entry
-  message = save_message({~author text=text time=Date.now() welcome={false} room=room_name number=999})
+  message = save_message({~author text=entry time=Date.now() welcome={false} room=room_name number=999})
   do Network.broadcast(message, room)
   Dom.clear_value(#entry)
 
