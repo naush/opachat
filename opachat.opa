@@ -98,23 +98,20 @@ stamp(date) = "{Date.to_formatted_string(Date.generate_printer("%H:%M"), date)}"
 
 command_parser =
   parser
-  | ":rm=/" ~topic "/" ~numeric -> {action = "rm-remote" arguments = [topic, numeric]} 
-  | ":rm=" ~numeric -> {action = "rm-local" arguments = [numeric]} 
+  | ":rm=" ~numeric -> {action = "rm" arguments = [numeric]} 
   | (.*) -> {action = "none" arguments = []}
 
 parse_command(token) = Parser.parse(command_parser, token)
 
 execute_from_server(command, room) =
   match command.action with
-  | "rm-remote" -> remove_from_db(List.head(command.arguments), List.head(List.tail(command.arguments)))
-  | "rm-local" -> remove_from_db(room, List.head(command.arguments))
+  | "rm" -> remove_from_db(room, List.head(command.arguments))
   | "none" -> {}
   | _ -> {}
 
 execute_from_client(command) =
   match command.action with
-  | "rm-remote" -> remove_from_dom(List.head(List.tail(command.arguments)))
-  | "rm-local" -> remove_from_dom(List.head(command.arguments))
+  | "rm" -> remove_from_dom(List.head(command.arguments))
   | "none" -> {}
   | _ -> {}
 
