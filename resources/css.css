@@ -236,6 +236,8 @@ input#entry {
 .old-user {display:inline-block;color: #d98585;font-variant:small-caps;width:70px;}
 .old-message{display:inline-block;color:#939393;max-width:1000px;vertical-align:text-top;}
 
+.command {color:#860707;}
+
 #top {
     background:#E4E1D8;
     position:fixed;

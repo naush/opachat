@@ -17,10 +17,20 @@ db /history[_][_]/number = 0
 
 @publish room = Network.cloud("room"): Network.network(message)
 
+parse_command(token) =
+  match Parser.try_parse(command_parser, token) with
+  | {none} -> {false}
+  | _ -> {true}
+
+command_parser =
+  parser
+  | ":rm=/" ~topic "/" ~numeric -> remove_from_db(topic, numeric)
+
 save_message(message) =
   room_name = message.room
   fresh_key = Db.fresh_key(!/history[room_name])
-  message = {author=message.author text=message.text time=message.time welcome={false} room=room_name number=fresh_key}
+  text = if parse_command(message.text) then "<div class=\"command\">BLASPHEMY</div>" else message.text
+  message = {author=message.author text=text time=message.time welcome={false} room=room_name number=fresh_key}
   do /history[room_name][fresh_key] <- message
   message 
 
@@ -38,10 +48,18 @@ embed_youtube(token) =
 embed_gist(token) =
   "<script src=\"http://gist.github.com/{token}.js\"></script>"
 
+remove_from_db(topic, number) =
+  do Db.remove(@/history[topic][Int.of_string(number)])
+  dom = Dom.select_id("post-{number}")
+  if Dom.is_empty(dom)
+    then {} 
+    else Dom.remove(dom)
+
 escape = parser p = ([a-zA-Z0-9\-_/.]+) -> Text.to_string(p)
 numeric = parser n = ([0-9]+) -> Text.to_string(n)
 alphanumeric = parser a = ([a-zA-Z0-9\-_]+) -> Text.to_string(a)
 protocol = parser p = ("http://"|"https://") -> Text.to_string(p)
+topic = parser t = ([a-zA-Z0-9-_.]+) -> Text.to_string(t)
 transformer =
   parser
   | protocol "gist.github.com/" ~numeric -> embed_gist(numeric)
@@ -62,7 +80,7 @@ transform_text(text) =
   Xhtml.of_string_unsafe(String.of_list(String.to_string, " ", tokens))
 
 message_to_html(m: message) =
-  <div class="post">
+  <div class="post" id="post-{m.number}">
      {if m.welcome then <div class="number" /> else <div class="number"><a name="{m.number}">{m.number}</a></div>}
      <div class="time">[{stamp(m.time)}]</div>
      <div class="user">{m.author}:</div>
@@ -70,7 +88,7 @@ message_to_html(m: message) =
   </div>
 
 history_to_html(m: message) =
-  <div class="post">
+  <div class="post" id="post-{m.number}">
      <div class="old-number"><a name="{m.number}">{m.number}</a></div>
      <div class="old-time">[{stamp(m.time)}]</div>
      <div class="old-user">{m.author}:</div>
