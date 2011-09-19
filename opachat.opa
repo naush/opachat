@@ -17,22 +17,12 @@ db /history[_][_]/number = 0
 
 @publish room = Network.cloud("room"): Network.network(message)
 
-parse_command(token) =
-  match Parser.try_parse(command_parser, token) with
-  | {none} -> {false}
-  | _ -> {true}
-
-command_parser =
-  parser
-  | ":rm=/" ~topic "/" ~numeric -> remove_from_db(topic, numeric)
-
 save_message(message) =
   room_name = message.room
   fresh_key = Db.fresh_key(!/history[room_name])
-  text = if parse_command(message.text) then "<div class=\"command\">BLASPHEMY</div>" else message.text
-  message = {author=message.author text=text time=message.time welcome={false} room=room_name number=fresh_key}
+  message = {author=message.author text=m.text time=message.time welcome={false} room=room_name number=fresh_key}
   do /history[room_name][fresh_key] <- message
-  message 
+  message
 
 welcome_message(author: string) =
   match author == Dom.get_value(#user) with
@@ -111,9 +101,19 @@ setup_conversation(author, room_name) =
   do Network.add_callback(user_update, room)
   Network.broadcast({~author text = "" time=Date.now() welcome={true} room=room_name number=999}, room)
 
+command_parser =
+  parser
+  | ":rm=/" ~topic "/" ~numeric -> remove_from_db(topic, numeric)
+
+parse_command(token) =
+  match Parser.try_parse(command_parser, token) with
+  | {none} -> {false}
+  | _ -> {true}
+
 broadcast(author, room_name) =
   entry = Dom.get_value(#entry)
-  message = save_message({~author text=entry time=Date.now() welcome={false} room=room_name number=999})
+  text = if parse_command(entry) then "<div class=\"command\">Blasphemy!</div>" else entry
+  message = save_message({~author text=text time=Date.now() welcome={false} room=room_name number=999})
   do Network.broadcast(message, room)
   Dom.clear_value(#entry)
 

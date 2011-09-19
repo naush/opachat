@@ -48,3 +48,7 @@
  - google search results integration
  - user left message
  - validate youtube entry: http://code.google.com/apis/youtube/2.0/developers_guide_php.html#Retrieving_Video_Entry
+ - global notification (for downtime and maintenance announcement)
+ - manage db records
+ - simple db actions (:rm=100)
+ - export db as xml
