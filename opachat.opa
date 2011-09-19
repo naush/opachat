@@ -38,7 +38,7 @@ embed_youtube(token) =
 embed_gist(token) =
   "<script src=\"http://gist.github.com/{token}.js\"></script>"
 
-escape = parser p = ([a-zA-Z0-9\-_/\.]+) -> Text.to_string(p)
+escape = parser p = ([a-zA-Z0-9\-_/.]+) -> Text.to_string(p)
 numeric = parser n = ([0-9]+) -> Text.to_string(n)
 alphanumeric = parser a = ([a-zA-Z0-9\-_]+) -> Text.to_string(a)
 protocol = parser p = ("http://"|"https://") -> Text.to_string(p)
