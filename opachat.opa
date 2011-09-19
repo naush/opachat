@@ -38,17 +38,18 @@ embed_youtube(token) =
 embed_gist(token) =
   "<script src=\"http://gist.github.com/{token}.js\"></script>"
 
-any = parser p = (.+) -> Text.to_string(p)
+escape = parser p = ([^"<>/]+) -> Text.to_string(p)
 numeric = parser n = ([0-9]+) -> Text.to_string(n)
+alphanumeric = parser a = ([a-zA-Z0-9\-_]+) -> Text.to_string(a)
 protocol = parser p = ("http://"|"https://") -> Text.to_string(p)
 transformer =
   parser
   | protocol "gist.github.com/" ~numeric -> embed_gist(numeric)
-  | protocol "www.youtube.com/watch?v=" ~any -> embed_youtube(any)
-  | protocol "youtube.com/watch?v=" ~any -> embed_youtube(any)
-  | protocol "www.youtube.com/v/" ~any -> embed_youtube(any)
-  | protocol "youtube.com/v/" ~any -> embed_youtube(any)
-  | ~protocol ~any -> "<a href=\"{protocol}{any}\" target=\"_blank\">{protocol}{any}</a>"
+  | protocol "www.youtube.com/watch?v=" ~alphanumeric -> embed_youtube(alphanumeric)
+  | protocol "youtube.com/watch?v=" ~alphanumeric -> embed_youtube(alphanumeric)
+  | protocol "www.youtube.com/v/" ~alphanumeric -> embed_youtube(alphanumeric)
+  | protocol "youtube.com/v/" ~alphanumeric -> embed_youtube(alphanumeric)
+  | ~protocol ~escape -> "<a href=\"{protocol}{escape}\" target=\"_blank\">{protocol}{escape}</a>"
   | "#" ~numeric -> "<a href=\"#{numeric}\">#{numeric}</a>"
 
 transform(token) =

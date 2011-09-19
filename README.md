@@ -47,3 +47,4 @@
  - wikipedia integration
  - google search results integration
  - user left message
+ - validate youtube entry: http://code.google.com/apis/youtube/2.0/developers_guide_php.html#Retrieving_Video_Entry
