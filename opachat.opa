@@ -130,7 +130,7 @@ user_update(m: message) =
     do Dom.transform([#conversation -<- post ])
     Dom.scroll_to_top(#conversation)
   )
-  else {}
+  else Dom.scroll_to_top(#conversation)
 
 setup_conversation(author, room_name) =
   do Network.add_callback(user_update, room)
@@ -156,7 +156,7 @@ body(author, messages, room_name) =
     <div id=#conversation onready={_ -> setup_conversation(author, room_name)}>
       {List.map(history_to_html, List.rev(messages))}
     </div>
-    <div id=#top>
+    <div id=#input>
       <input id=#entry onnewline={_ -> broadcast(author, room_name)} />
       <input type="submit" onclick={_ -> broadcast(author, room_name)} value="Post" />
     </div>

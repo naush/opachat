@@ -196,7 +196,7 @@ input#entry {
 }
 
 #logo {
-     background: url("/resources/opa-logo.png") no-repeat scroll 0 0 transparent;
+/*     background: url("/resources/opa-logo.png") no-repeat scroll 0 0 transparent;*/
      height: 41px;
      margin: 5px 0 15px;
      width: 100px;
@@ -209,7 +209,7 @@ input#entry {
 }
 
 .post {
-     background: url("/resources/user.png") no-repeat 5px 5px;
+/*     background: url("/resources/user.png") no-repeat 5px 5px;*/
      clear: both;
      display: block;
      margin: 5px 5px 5px 0;
@@ -238,7 +238,7 @@ input#entry {
 
 .command {color:#860707;}
 
-#top {
+#input {
     background:#E4E1D8;
     position:fixed;
     bottom:0;
