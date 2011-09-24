@@ -53,3 +53,5 @@
  - manage db records
  - simple db actions (:rm=100)
  - export db as xml
+ - integrate pastebin http://pastebin.com/t5BtQzqm => <script src="http://pastebin.com/embed_js.php?i=t5BtQzqm"></script>
+ - refactor with record derivation: see manual

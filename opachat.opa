@@ -1,4 +1,6 @@
 import stdlib.web.template
+import stdlib.upload
+import stdlib.crypto
 
 type command = {action: string
                ; arguments: list(string)}
@@ -45,12 +47,12 @@ remove_from_db(topic, number) =
   path = @/history[topic][Int.of_string(number)]
   if Db.exists(path)
     then Db.remove(path)
-    else {}
+    else void
 
 remove_from_dom(number) =
   dom = Dom.select_id("post-{number}")
   if Dom.is_empty(dom)
-    then {} 
+    then void 
     else Dom.remove(dom)
 
 escape = parser p = ([a-zA-Z0-9\-_/.]+) -> Text.to_string(p)
@@ -99,7 +101,7 @@ stamp(date) = "{Date.to_formatted_string(Date.generate_printer("%H:%M"), date)}"
 
 command_parser =
   parser
-  | ":rm=" ~numeric -> {action = "rm" arguments = [numeric]} 
+  | ":rm=" ~numeric -> {action = "rm" arguments = [numeric]}
   | (.*) -> {action = "none" arguments = []}
 
 parse_command(token) = Parser.parse(command_parser, token)
@@ -107,14 +109,14 @@ parse_command(token) = Parser.parse(command_parser, token)
 execute_from_server(command, room) =
   match command.action with
   | "rm" -> remove_from_db(room, List.head(command.arguments))
-  | "none" -> {}
-  | _ -> {}
+  | "none" -> void
+  | _ -> void
 
 execute_from_client(command) =
   match command.action with
   | "rm" -> remove_from_dom(List.head(command.arguments))
-  | "none" -> {}
-  | _ -> {}
+  | "none" -> void
+  | _ -> void
 
 user_update(m: message) =
   if m.room == Dom.get_value(#room)
@@ -126,6 +128,8 @@ user_update(m: message) =
       do execute_from_client(parse_command(m.text))
       "<div class=\"command\">Blasphemy!</div>"
     )
+    // | "image" -> m.text
+    // | "warn" -> m.text
     | _ -> m.text
     post = message_to_html({author=m.author text=text time=m.time kind=m.kind room=m.room number=m.number})
     do Dom.transform([#conversation -<- post ])
@@ -147,6 +151,61 @@ broadcast(author, room_name) =
   do Network.broadcast(message, room)
   Dom.clear_value(#entry)
 
+// uri_for_s3 = Uri.of_absolute({Uri.default_absolute with
+//    schema = {some = "http"}
+//    domain = "blasphemy.s3.amazonaws.com"
+//    port   = {some = 80} // which port?
+//    query  = [("AWSAccessKeyId", "")]
+// })
+
+binary_to_base64(binary) = Crypto.Base64.encode(binary)
+
+save_image(file:Upload.file, author:string, room_name:string) =
+  file_length = String.length(file.content)
+  do Log.info("Saving image", "{author} {room_name} {file.filename} {file_length}")
+  if file_length < 1572864 // 1.5m
+  then (
+    base64 = binary_to_base64(file.content)
+    inline_image = "<img src=\"data:{file.mimetype};base64,{base64}\" />"
+    message = {~author text=inline_image time=Date.now() kind = "image" room=room_name number=999}
+    do Network.broadcast(message, room)
+    void
+  ) else (void)
+
+fetch_field(field_name, data) =
+  match Map.get(field_name, data) with
+  | ~{some} -> some
+  | {none} -> "_"
+
+form_data(data) =
+  files = data.uploaded_files
+  fields = data.form_fields
+  author = fetch_field("author", fields)
+  room = fetch_field("room", fields)
+  do Log.info("Uploaded by", "{author} in room {room}.")
+  do Dom.set_html_unsafe(#input, Xhtml.to_string(input_form(author, room)))
+  do match Map.get("upload", files) with
+    | ~{some} -> save_image(some, author, room)
+    | {none} -> Log.error("Image upload", "failed.")
+  void
+
+params = {expiration={none} consumption={unlimited} visibility={current_context}}
+
+input_form(author, room_name) =
+  Upload.html(
+    {
+      form_id = "upload"
+      url_parameters = params
+      form_body =
+        <input id=#entry onnewline={_ -> broadcast(author, room_name)} />
+        <input type="submit" onclick={_ -> broadcast(author, room_name)} value="Post" />
+        <input type="hidden" name="author" value="{author}" />
+        <input type="hidden" name="room" value="{room_name}" />
+        <input type="file" id=#upload name="upload" />
+      process = form_data
+    }
+  )
+
 body(author, messages, room_name) =
   Resource.styled_page("/{room_name}/", ["/resources/css.css"],
     <div id=#header>
@@ -158,8 +217,7 @@ body(author, messages, room_name) =
       {List.map(history_to_html, List.rev(messages))}
     </div>
     <div id=#input>
-      <input id=#entry onnewline={_ -> broadcast(author, room_name)} />
-      <input type="submit" onclick={_ -> broadcast(author, room_name)} value="Post" />
+      {input_form(author, room_name)}
     </div>
   )
 

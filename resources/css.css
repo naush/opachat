@@ -248,6 +248,10 @@ input#entry {
     text-align:left;
 }
 
+#upload {
+    margin-left:8px;
+}
+
 .youtube-player {
     margin-top:5px;
 }
