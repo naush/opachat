@@ -23,11 +23,15 @@ db /history[_][_]/number = 0
 @publish room = Network.cloud("room"): Network.network(message)
 
 save_message(message) =
-  room_name = message.room
-  fresh_key = Db.fresh_key(!/history[room_name])
-  message = {author=message.author text=message.text time=message.time kind=message.kind room=room_name number=fresh_key}
-  do /history[room_name][fresh_key] <- message
-  message
+  if message.text == "" || message.kind == "image"
+  then message
+  else (
+    room_name = message.room
+    fresh_key = Db.fresh_key(!/history[room_name])
+    message = {author=message.author text=message.text time=message.time kind=message.kind room=room_name number=fresh_key}
+    do /history[room_name][fresh_key] <- message
+    message
+  )
 
 welcome_message(author: string) =
   match author == Dom.get_value(#user) with
