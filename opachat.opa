@@ -131,9 +131,13 @@ user_update(m: message) =
     // | "image" -> m.text
     // | "warn" -> m.text
     | _ -> m.text
-    post = message_to_html({author=m.author text=text time=m.time kind=m.kind room=m.room number=m.number})
-    do Dom.transform([#conversation -<- post ])
-    Dom.scroll_to_top(#conversation)
+    match text with
+    | "" -> Dom.scroll_to_top(#conversation)
+    | _ -> (
+      post = message_to_html({author=m.author text=text time=m.time kind=m.kind room=m.room number=m.number})
+      do Dom.transform([#conversation -<- post ])
+      Dom.scroll_to_top(#conversation)
+    )
   )
   else Dom.scroll_to_top(#conversation)
 
@@ -163,7 +167,7 @@ binary_to_base64(binary) = Crypto.Base64.encode(binary)
 save_image(file:Upload.file, author:string, room_name:string) =
   file_length = String.length(file.content)
   do Log.info("Saving image", "{author} {room_name} {file.filename} {file_length}")
-  if file_length < 1572864 // 1.5m
+  if file_length > 0 && file_length < 1572864 // 1.5m
   then (
     base64 = binary_to_base64(file.content)
     inline_image = "<img src=\"data:{file.mimetype};base64,{base64}\" />"
