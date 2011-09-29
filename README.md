@@ -15,6 +15,7 @@
  - post number (#100 should create link to post #100)
  - gist integration (pasting code)
  - command: _:rm=#_ (remove post #)
+ - upload and display images
 
 # ToDo:
  - display popular rooms /lounge (100)/ on top
@@ -23,7 +24,6 @@
  - older message displays day/mo/year in addition to min/hour
  - customizable theme
  - drag and drop
- - upload and display images
  - upload and display sound clips
  - twitter-style display more log
  - allows lounges/topics
