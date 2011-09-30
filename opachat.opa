@@ -179,6 +179,7 @@ form_data(data) =
   room_name = parse_field("room", fields)
   do broadcast(author, room_name)
   do Dom.set_html_unsafe(#input, Xhtml.to_string(input_form(author, room_name)))
+  do Dom.give_focus(#entry)
   do match Map.get("upload", files) with
     | ~{some} -> save_image(some, author, room_name)
     | {none} -> void 
