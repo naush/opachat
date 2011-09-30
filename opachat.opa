@@ -165,9 +165,13 @@ save_image(file:Upload.file, author:string, room_name:string) =
   if String.is_empty(file.filename)
   then void
   else (
-    do S3.upload(file)
     image_tag = "<img src='http://s3.amazonaws.com/blasphemy/images/{file.filename}'></img>"
-    message = save_message({~author text=image_tag time=Date.now() kind = "chat" room=room_name number=999})
+    message = match file.mimetype with
+    | "image/gif" -> save_message({~author text=image_tag time=Date.now() kind = "chat" room=room_name number=999})
+    | "image/jpeg" -> save_message({~author text=image_tag time=Date.now() kind = "chat" room=room_name number=999})
+    | "image/png" -> save_message({~author text=image_tag time=Date.now() kind = "chat" room=room_name number=999})
+    | _ -> save_message({~author text = "GIF/JPG/PNG only." time=Date.now() kind = "error" room=room_name number=999})
+    do if message.kind == "chat" then S3.upload(file) else void
     do Network.broadcast(message, room)
     void
   )
