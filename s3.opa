@@ -3,7 +3,7 @@ package blasphemy.s3
 import stdlib.crypto
 
 S3 = {{
-  date_printer = Date.generate_printer("%a, %d %b %Y %H:%M:%S CDT")
+  date_printer = Date.generate_printer("%a, %d %b %Y %H:%M:%S GMT")
   aws_secret_key = "whq/spFDptkwzbkSOML+SNkF6es13dsxcIcPyJFu"
   aws_access_key_id = "AKIAJUVSWK47YD5FEFLQ"
 

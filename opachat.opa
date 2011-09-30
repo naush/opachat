@@ -144,13 +144,17 @@ setup_conversation(author, room_name) =
 
 broadcast(author, room_name) =
   entry = Dom.get_value(#entry)
-  command = parse_command(entry)
-  do execute_from_server(command, room_name)
-  message = if command.action == "none"
-    then save_message({~author text=entry time=Date.now() kind = "chat" room=room_name number=999})
-    else {~author text=entry time=Date.now() kind = "command" room=room_name number=999}
-  do Network.broadcast(message, room)
-  Dom.clear_value(#entry)
+  if String.is_empty(entry)
+  then void
+  else (
+    command = parse_command(entry)
+    do execute_from_server(command, room_name)
+    message = if command.action == "none"
+      then save_message({~author text=entry time=Date.now() kind = "chat" room=room_name number=999})
+      else {~author text=entry time=Date.now() kind = "command" room=room_name number=999}
+    do Network.broadcast(message, room)
+    Dom.clear_value(#entry)
+  )
 
 parse_field(field_name, data) =
   match Map.get(field_name, data) with
@@ -158,30 +162,26 @@ parse_field(field_name, data) =
   | {none} -> "_"
 
 save_image(file:Upload.file, author:string, room_name:string) =
-  do S3.upload(file)
-  image_tag = "<img src='http://s3.amazonaws.com/blasphemy/images/{file.filename}'></img>"
-  message = save_message({~author text=image_tag time=Date.now() kind = "chat" room=room_name number=999})
-  do Network.broadcast(message, room)
-  void
+  if String.is_empty(file.filename)
+  then void
+  else (
+    do S3.upload(file)
+    image_tag = "<img src='http://s3.amazonaws.com/blasphemy/images/{file.filename}'></img>"
+    message = save_message({~author text=image_tag time=Date.now() kind = "chat" room=room_name number=999})
+    do Network.broadcast(message, room)
+    void
+  )
 
 form_data(data) =
   files = data.uploaded_files
   fields = data.form_fields
   author = parse_field("author", fields)
   room_name = parse_field("room", fields)
-  entry = parse_field("entry", fields)
-  do if String.is_empty(entry)
-    then void
-    else (
-      message = save_message({~author text=entry time=Date.now() kind = "chat" room=room_name number=999})
-      do Network.broadcast(message, room)
-      void
-    )
-  do Log.info("Submitted by", fields)
+  do broadcast(author, room_name)
   do Dom.set_html_unsafe(#input, Xhtml.to_string(input_form(author, room_name)))
   do match Map.get("upload", files) with
     | ~{some} -> save_image(some, author, room_name)
-    | {none} -> Log.error("Image upload", "failed.")
+    | {none} -> void 
   void
 
 params = {expiration={none} consumption={unlimited} visibility={current_context}}
