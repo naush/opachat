@@ -122,11 +122,15 @@ command_message(text:string) =
   do execute_from_client(parse_command(text))
   Xhtml.to_string(<div class="command">Blasphemy!</div>)
 
+error_message(text:string) =
+  Xhtml.to_string(<div class="error">{text}</div>)
+
 message_executor(m: message) =
   text = match m.kind with
     | "welcome" -> welcome_message(m.author)
     | "chat" -> m.text
     | "command" -> command_message(m.text)
+    | "error" -> error_message(m.text)
     | _ -> m.text
   html = message_to_html({m with ~text })
   do Dom.transform([#conversation -<- html ])

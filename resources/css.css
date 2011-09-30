@@ -237,6 +237,7 @@ input#entry {
 .old-message{display:inline-block;color:#939393;max-width:1000px;vertical-align:text-top;}
 
 .command {color:#860707;}
+.error {color:#0B67B2;}
 
 #input {
     background:#E4E1D8;
