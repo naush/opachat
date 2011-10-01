@@ -61,14 +61,13 @@ alphanumeric = parser a = ([a-zA-Z0-9]+) -> Text.to_string(a)
 path = parser p = ([a-zA-Z0-9\-=&_]+) -> Text.to_string(p)
 protocol = parser p = ("http://"|"https://") -> Text.to_string(p)
 topic = parser t = ([a-zA-Z0-9-_.]+) -> Text.to_string(t)
+subdomain = parser s = ("www."|"") -> Text.to_string(s)
 
 transformer =
   parser
   | protocol "gist.github.com/" ~numeric -> embed_gist(numeric)
-  | protocol "www.youtube.com/watch?v=" ~path -> embed_youtube(path)
-  | protocol "youtube.com/watch?v=" ~path -> embed_youtube(path)
-  | protocol "www.youtube.com/v/" ~path -> embed_youtube(path)
-  | protocol "youtube.com/v/" ~path -> embed_youtube(path)
+  | protocol subdomain "youtube.com/watch?v=" ~path -> embed_youtube(path)
+  | protocol subdomain "youtube.com/v/" ~path -> embed_youtube(path)
   | ~protocol ~escape -> "<a href=\"{protocol}{escape}\" target=\"_blank\">{protocol}{escape}</a>"
   | "#" ~numeric -> "<a href=\"#{numeric}\">#{numeric}</a>"
 
