@@ -16,11 +16,11 @@
  - gist integration (pasting code)
  - command: _:rm=#_ (remove post #)
  - upload and display images
+ - clickable post number (append #100 to your input)
 
 # ToDo:
  - display popular rooms /lounge (100)/ on top
  - simple markup language integration
- - clickable post number (append #100 to your input)
  - older message displays day/mo/year in addition to min/hour
  - customizable theme
  - drag and drop

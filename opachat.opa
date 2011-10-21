@@ -52,7 +52,7 @@ remove_from_db(topic, number) =
 remove_from_dom(number) =
   dom = Dom.select_id("post-{number}")
   if Dom.is_empty(dom)
-    then void 
+    then void
     else Dom.remove(dom)
 
 escape = parser p = ([a-zA-Z0-9\-_/.]+) -> Text.to_string(p)
@@ -82,15 +82,19 @@ transform_text(text) =
 
 message_to_html(m: message) =
   <div class="post" id="post-{m.number}">
-     {if m.kind == "chat" then <div class="number"><a name="{m.number}">{m.number}</a></div> else <div class="number" />}
+     {if m.kind == "chat" then <div class="number"><a name="{m.number}" onclick={_->append_number(m.number)}>{m.number}</a></div> else <div class="number" />}
      <div class="time">[{stamp(m.time)}]</div>
      <div class="user">{m.author}:</div>
      <div class="message">{transform_text(m.text)}</div>
   </div>
 
+append_number(number) =
+  value = "{Dom.get_value(#entry)}#{number}"
+  Dom.set_value(#entry, value)
+
 history_to_html(m: message) =
   <div class="post" id="post-{m.number}">
-     <div class="old-number"><a name="{m.number}">{m.number}</a></div>
+     <div class="old-number"><a name="{m.number}" onclick={_->append_number(m.number)}>{m.number}</a></div>
      <div class="old-time">[{stamp(m.time)}]</div>
      <div class="old-user">{m.author}:</div>
      <div class="old-message">{transform_text(m.text)}</div>
