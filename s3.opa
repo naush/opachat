@@ -4,8 +4,8 @@ import stdlib.crypto
 
 S3 = {{
   date_printer = Date.generate_printer("%a, %d %b %Y %H:%M:%S GMT")
-  aws_secret_key = "whq/spFDptkwzbkSOML+SNkF6es13dsxcIcPyJFu"
-  aws_access_key_id = "AKIAJUVSWK47YD5FEFLQ"
+  aws_secret_key = "secret_key"
+  aws_access_key_id = "access_key_id"
 
   aws_uri(filename) = Uri.of_absolute({
      Uri.default_absolute with
